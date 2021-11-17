@@ -1,72 +1,61 @@
-class Knight
-    attr_accessor :position
+class Square
+    attr_accessor :position, :parent, :knight_movements
 
-    def initialize(position)
-        @position = position
+    
+    def initialize
+       @position = nil
+       @parent = nil
+       
+    end
+
+    def knight_movements
+        @knight_movements = [ [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2] ]
+    end
+    def possible_knight_move?(position)
+        return false if (position.first <= 0 || position.first >= 8) || (position.last <= 0 || position.last >= 8) 
+        return true
+    end
+
+    def make_board(start, finish)
+        queue = [start]
+        board = Array.new(8) { Array.new(8) { Square.new } }
+        board[start.first][start.last].position = start
+
+
+        until queue.empty?
+            current_position = queue.shift
+
+            break if current_position == finish
+
+            (0...8).each do |move|
+
+                next_square = [current_position.first + knight_movements[move].first, current_position.last + knight_movements[move].last]
+
+                if possible_knight_move?(next_square) && !board[next_square.first][next_square.last].position
+
+                    board[next_square.first][next_square.last].position = next_square
+                    board[next_square.first][next_square.last].parent = board[current_position.first][current_position.last]
+                    queue.push(next_square)
+
+                end
+            end
+        end
+        board 
     end
 
     def knight_moves(start, finish)
-
-    end
-end
-
-class Board
-    attr_accessor :coordinate_set
-
-    def initialize()
-        @coordinate_set = connect_squares(create_board)
-    end
-
-    def create_board(size = 8)
-        # With this, we can just change the array input to be inner and that will give us a different setup. But this way may be best for now. Using the coordinates with no intermediate step.
-        array = []
-        (1..size).each do |outer|
-            inner_array = []
-            (1..size).each do |inner|
-                inner_array.push([outer, inner])
-            end
-            array.push(inner_array)
+        board = make_board(start, finish)
+        route = []
+        current_square = board[finish.first][finish.last]
+        until current_square.nil?
+            route.unshift(current_square.position)
+            current_square = current_square.parent
         end
-        array
-    end
+        route.each { |position| p position }
 
-    def connect_squares(array_of_coordinates)
-        board = array_of_coordinates
-        board_with_squares = board.each do |outer|
-            outer.each do |inner|
-                inner = Square.new(inner)
-            end
-        end
-
-        board_with_squares
-    end
-
-    
-
-end
-
-class Square 
-    # The starting position was chosen as the topmost right space that the knight could move and then the other attributes continue clockwise
-    attr_accessor :coordinates, :up2_right1, :up1_right2, :down1_right2, :down2_right1, :down2_left1, :down1_left2, :up1_left2, :up2_left1
-
-    def initialize(coordinates, up2_right1 = nil, up1_right2 = nil, down1_right2 = nil, down2_right1 = nil, down2_left1 = nil, down1_left2 = nil, up1_left2 = nil, up2_left1 = nil)
-        @coordinates = coordinates
     end
 end
 
-
-#p Board.new.set_coordinates 
-
-
-
-
-test = Board.new
-
-p test
-
-
-# Next step is to assign a coordinate to each square. Then we should try to assign all of the children nodes that can be accessed by a particular square. This should be done in a way that coincides with the MOVEMENT OF THE KNIGHT. So, any square could be connected to up to 8 other squares.
-
-# After that, we should find a way to traverse the nodes so that we can see what is happening. We will do this in a standard way. 
-
-# Finally, we will try to find a way to traverse with the knight movements and then we will try to go from point A to point B.
+Square.new.knight_moves([1,2], [2,4])
+p ''
+Square.new.knight_moves([0,0], [6,7])
